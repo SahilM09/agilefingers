@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AgileFingers — Typing Speed Test</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0f0f13;
+      --bg-card:   #18181f;
+      --bg-raised: #22222d;
+      --bg-input:  #1c1c26;
+      --border:    rgba(255,255,255,0.07);
+      --border-hi: rgba(255,255,255,0.14);
+      --text:      #e8e8f0;
+      --muted:     #8888a0;
+      --dim:       #55556a;
+      --accent:    #7c6fef;
+      --accent2:   #a78bfa;
+      --accent-bg: rgba(124,111,239,0.12);
+      --green:     #34d399;
+      --green-bg:  rgba(52,211,153,0.1);
+      --red:       #f87171;
+      --red-bg:    rgba(248,113,113,0.1);
+      --amber:     #fbbf24;
+      --amber-bg:  rgba(251,191,36,0.1);
+      --font: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+      --mono: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+      --r: 10px;
+      --r-lg: 16px;
+    }
+
+    html, body {
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+    }
+
+    /* subtle dot-grid bg */
+    body {
+      background-image: radial-gradient(rgba(124,111,239,0.06) 1px, transparent 1px);
+      background-size: 28px 28px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2.5rem 1.25rem 3rem;
+    }
+
+    .container { width: 100%; max-width: 880px; }
+
+    /* ── HEADER ── */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 6px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.3px;
+    }
+
+    .logo-icon {
+      width: 36px; height: 36px;
+      background: var(--accent-bg);
+      border: 1px solid rgba(124,111,239,0.3);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .logo-icon i { font-size: 18px; color: var(--accent2); }
+
+    .logo span { color: var(--accent2); }
+
+    .subtitle {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 2rem;
+    }
+
+    /* ── DUR PILLS ── */
+    .dur-group { display: flex; gap: 6px; align-items: center; }
+    .dur-label { font-size: 12px; color: var(--dim); margin-right: 2px; }
+
+    .dur-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 5px 14px;
+      font-size: 13px;
+      color: var(--muted);
+      cursor: pointer;
+      font-family: var(--font);
+      transition: all 0.15s;
+    }
+
+    .dur-btn:hover { border-color: var(--border-hi); color: var(--text); }
+
+    .dur-btn.active {
+      background: var(--accent-bg);
+      border-color: rgba(124,111,239,0.5);
+      color: var(--accent2);
+      font-weight: 600;
+    }
+
+    /* ── STATS GRID ── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: 1rem 1.1rem;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.2s;
+    }
+
+    .stat-card:hover { border-color: var(--border-hi); }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      border-radius: 2px 2px 0 0;
+    }
+
+    .stat-card.wpm-card::before  { background: linear-gradient(90deg,#7c6fef,#a78bfa); }
+    .stat-card.cpm-card::before  { background: linear-gradient(90deg,#34d399,#6ee7b7); }
+    .stat-card.acc-card::before  { background: linear-gradient(90deg,#fbbf24,#fde68a); }
+    .stat-card.mis-card::before  { background: linear-gradient(90deg,#f87171,#fca5a5); }
+
+    .stat-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      color: var(--dim);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1;
+      font-family: var(--mono);
+    }
+
+    .stat-unit {
+      font-size: 12px;
+      font-weight: 400;
+      color: var(--muted);
+      margin-left: 3px;
+      font-family: var(--font);
+    }
+
+    /* ── TIMER ── */
+    .timer-wrap {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 10px 16px;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .timer-icon { font-size: 15px; color: var(--muted); }
+
+    .bar-bg {
+      flex: 1;
+      height: 4px;
+      background: var(--bg-raised);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #7c6fef, #a78bfa);
+      border-radius: 2px;
+      transition: width 0.6s linear;
+    }
+
+    .bar-fill.urgent { background: linear-gradient(90deg,#f87171,#fbbf24); }
+
+    .timer-count {
+      font-family: var(--mono);
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      min-width: 38px;
+      text-align: right;
+    }
+
+    /* ── TYPING AREA ── */
+    .typing-wrap {
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: 1.4rem 1.6rem;
+      margin-bottom: 14px;
+      min-height: 130px;
+      font-size: 20px;
+      letter-spacing: 0.4px;
+      cursor: text;
+      position: relative;
+      overflow: hidden;
+      user-select: none;
+      transition: border-color 0.2s;
+    }
+
+    .typing-wrap:focus-within { border-color: rgba(124,111,239,0.4); }
+
+    #words { line-height: 2.1; }
+
+    .word {
+      display: inline-block;
+      margin-right: 7px;
+      padding: 1px 3px;
+      border-radius: 4px;
+    }
+
+    .word.current {
+      background: rgba(124,111,239,0.14);
+      border-bottom: 2px solid var(--accent2);
+    }
+
+    .word.correct { color: var(--dim); }
+    .word.wrong   { background: var(--red-bg); }
+
+    .char { display: inline-block; position: relative; color: var(--muted); }
+    .char.correct { color: var(--green); }
+    .char.wrong   { color: var(--red); text-decoration: underline; text-decoration-color: var(--red); }
+
+    .char.current::before {
+      content: '';
+      position: absolute;
+      left: -1px; top: 4px; bottom: 4px;
+      width: 2px;
+      background: var(--accent2);
+      border-radius: 1px;
+      animation: blink 0.65s infinite;
+    }
+
+    @keyframes blink {
+      0%,100% { opacity:1; }
+      50%      { opacity:0; }
+    }
+
+    .input-hidden {
+      position: absolute; opacity: 0;
+      pointer-events: none; width:1px; height:1px;
+    }
+
+    /* ── CONTROLS ── */
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 2rem;
+    }
+
+    .btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border-hi);
+      border-radius: var(--r);
+      padding: 8px 18px;
+      font-size: 14px;
+      color: var(--text);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-family: var(--font);
+      font-weight: 500;
+      transition: all 0.15s;
+    }
+
+    .btn:hover { background: var(--bg-raised); border-color: rgba(255,255,255,0.2); }
+    .btn:active { transform: scale(0.97); }
+
+    .btn.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    .btn.primary:hover { background: #6a5ee0; border-color: #6a5ee0; }
+
+    .hint {
+      font-size: 12px;
+      color: var(--dim);
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    kbd {
+      font-family: var(--mono);
+      font-size: 11px;
+      padding: 1px 6px;
+      border: 1px solid var(--border-hi);
+      border-radius: 4px;
+      background: var(--bg-raised);
+      color: var(--muted);
+    }
+
+    /* ══════════════════════════════
+       RESULT SCREEN — full takeover
+       ══════════════════════════════ */
+    .result-screen {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(10,10,15,0.92);
+      backdrop-filter: blur(6px);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      animation: fadeIn 0.25s ease;
+    }
+
+    .result-screen.show { display: flex; }
+
+    @keyframes fadeIn { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:none} }
+
+    .result-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-hi);
+      border-radius: 24px;
+      padding: 2.5rem 2rem 2rem;
+      width: 100%;
+      max-width: 660px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    /* top badge */
+    .result-badge {
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .result-badge-text {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--accent-bg);
+      border: 1px solid rgba(124,111,239,0.3);
+      border-radius: 999px;
+      padding: 5px 16px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--accent2);
+    }
+
+    /* big WPM hero */
+    .result-hero {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .result-hero-num {
+      font-size: 96px;
+      font-weight: 800;
+      font-family: var(--mono);
+      line-height: 1;
+      background: linear-gradient(135deg, #a78bfa, #7c6fef, #6ee7b7);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -4px;
+    }
+
+    .result-hero-label {
+      font-size: 14px;
+      color: var(--muted);
+      margin-top: 4px;
+      font-weight: 500;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    /* secondary stats row */
+    .result-stats-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 1.5rem;
+    }
+
+    .res-stat {
+      background: var(--bg-raised);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 0.85rem 1rem;
+      text-align: center;
+    }
+
+    .res-stat-val {
+      font-size: 22px;
+      font-weight: 700;
+      font-family: var(--mono);
+      color: var(--text);
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .res-stat-val.green { color: var(--green); }
+    .res-stat-val.red   { color: var(--red);   }
+    .res-stat-val.amber { color: var(--amber);  }
+
+    .res-stat-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: var(--dim);
+    }
+
+    /* performance bar */
+    .perf-bar-wrap {
+      background: var(--bg-raised);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 0.85rem 1rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .perf-bar-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .perf-bar-bg {
+      height: 8px;
+      background: var(--bg);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .perf-bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      background: linear-gradient(90deg, #7c6fef, #34d399);
+      transition: width 0.8s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    /* mistake analysis */
+    .ma-wrap {
+      background: var(--bg-raised);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 1rem 1.1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .ma-title {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: var(--dim);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .ma-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px,1fr));
+      gap: 8px;
+    }
+
+    .ma-item {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 14px;
+      font-family: var(--mono);
+    }
+
+    .ma-exp { color: var(--green); font-weight: 600; }
+    .ma-arr { color: var(--dim); font-size: 11px; }
+    .ma-got { color: var(--red);   font-weight: 600; }
+    .ma-cnt { font-size: 12px; color: var(--dim); margin-left: auto; }
+
+    .ma-tag {
+      font-size: 10px;
+      padding: 1px 6px;
+      border-radius: 999px;
+      font-family: var(--font);
+      font-weight: 600;
+    }
+
+    .tag-frequent { background: var(--red-bg);   color: var(--red);   }
+    .tag-minor    { background: var(--green-bg);  color: var(--green); }
+
+    .perfect-msg {
+      text-align: center;
+      padding: 0.5rem 0;
+      color: var(--green);
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .result-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      margin-top: 1rem;
+      font-size: 12px;
+      color: var(--dim);
+      text-align: center;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 580px) {
+      .stats-grid { grid-template-columns: repeat(2,1fr); }
+      .result-stats-row { grid-template-columns: repeat(3,1fr); }
+      .result-hero-num  { font-size: 72px; }
+      .typing-wrap      { font-size: 17px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="logo">
+      <div class="logo-icon"><i class="ti ti-keyboard"></i></div>
+      Agile<span>Fingers</span>
+    </div>
+    <div class="dur-group">
+      <span class="dur-label">Duration</span>
+      <button class="dur-btn active" onclick="setDur(this,30)">30s</button>
+      <button class="dur-btn"        onclick="setDur(this,60)">60s</button>
+      <button class="dur-btn"        onclick="setDur(this,120)">120s</button>
+    </div>
+  </div>
+  <p class="subtitle">Click the text below and start typing — timer starts on first keystroke</p>
+
+  <!-- Live stats -->
+  <div class="stats-grid">
+    <div class="stat-card wpm-card">
+      <div class="stat-label"><i class="ti ti-bolt" style="color:#a78bfa"></i> WPM</div>
+      <div class="stat-value" id="wpm">0<span class="stat-unit">wpm</span></div>
+    </div>
+    <div class="stat-card cpm-card">
+      <div class="stat-label"><i class="ti ti-letter-a" style="color:#34d399"></i> CPM</div>
+      <div class="stat-value" id="cpm">0<span class="stat-unit">cpm</span></div>
+    </div>
+    <div class="stat-card acc-card">
+      <div class="stat-label"><i class="ti ti-target" style="color:#fbbf24"></i> Accuracy</div>
+      <div class="stat-value" id="accuracy">100<span class="stat-unit">%</span></div>
+    </div>
+    <div class="stat-card mis-card">
+      <div class="stat-label"><i class="ti ti-alert-triangle" style="color:#f87171"></i> Mistakes</div>
+      <div class="stat-value" id="mistakes">0</div>
+    </div>
+  </div>
+
+  <!-- Timer bar -->
+  <div class="timer-wrap">
+    <i class="ti ti-clock timer-icon"></i>
+    <div class="bar-bg"><div class="bar-fill" id="bar" style="width:100%"></div></div>
+    <span class="timer-count" id="timelabel">30s</span>
+  </div>
+
+  <!-- Typing area -->
+  <div class="typing-wrap" id="textbox" onclick="focusInput()">
+    <div id="words"></div>
+    <input type="text" id="hidden-input" class="input-hidden"
+           autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+  </div>
+
+  <!-- Controls -->
+  <div class="controls">
+    <button class="btn primary" onclick="reset()"><i class="ti ti-refresh"></i> Restart</button>
+    <button class="btn" onclick="reset(true)"><i class="ti ti-shuffle"></i> New words</button>
+    <span class="hint"><i class="ti ti-keyboard"></i> Press <kbd>Esc</kbd> to restart</span>
+  </div>
+
+</div><!-- /container -->
+
+<!-- ══════════════════════════ RESULT SCREEN ══════════════════════════ -->
+<div class="result-screen" id="result-screen">
+  <div class="result-card">
+
+    <div class="result-badge">
+      <span class="result-badge-text"><i class="ti ti-flag-3"></i> Test complete</span>
+    </div>
+
+    <div class="result-hero">
+      <div class="result-hero-num" id="res-wpm">0</div>
+      <div class="result-hero-label">words per minute</div>
+    </div>
+
+    <div class="result-stats-row">
+      <div class="res-stat">
+        <div class="res-stat-val amber" id="res-cpm">0</div>
+        <div class="res-stat-label">CPM</div>
+      </div>
+      <div class="res-stat">
+        <div class="res-stat-val green" id="res-acc">100%</div>
+        <div class="res-stat-label">Accuracy</div>
+      </div>
+      <div class="res-stat">
+        <div class="res-stat-val red" id="res-mis">0</div>
+        <div class="res-stat-label">Mistakes</div>
+      </div>
+    </div>
+
+    <!-- Accuracy bar -->
+    <div class="perf-bar-wrap">
+      <div class="perf-bar-label">
+        <span>Accuracy</span>
+        <span id="res-acc-bar-label">100%</span>
+      </div>
+      <div class="perf-bar-bg">
+        <div class="perf-bar-fill" id="res-acc-bar" style="width:100%"></div>
+      </div>
+    </div>
+
+    <!-- Mistake analysis -->
+    <div class="ma-wrap">
+      <div class="ma-title"><i class="ti ti-microscope"></i> Mistake analysis</div>
+      <div id="ma-content"></div>
+    </div>
+
+    <div class="result-actions">
+      <button class="btn primary" onclick="reset()"><i class="ti ti-refresh"></i> Try again</button>
+      <button class="btn" onclick="reset(true)"><i class="ti ti-shuffle"></i> New words</button>
+    </div>
+
+  </div>
+</div>
+
+<footer>AgileFingers &mdash; built with HTML, CSS &amp; JavaScript</footer>
+
+<script>
+  const WORDS = [
+    "the","be","to","of","and","a","in","that","have","it","for","not","on","with","he",
+    "as","you","do","at","this","but","his","by","from","they","we","say","her","she","or",
+    "an","will","my","one","all","would","there","their","what","so","up","out","if","about",
+    "who","get","which","go","me","when","make","can","like","time","no","just","him","know",
+    "take","people","into","year","your","good","some","could","them","see","other","than",
+    "then","now","look","only","come","its","over","think","also","back","after","use","two",
+    "how","our","work","first","well","way","even","new","want","because","any","these","give",
+    "day","most","us","great","between","need","large","often","hand","high","place","hold",
+    "small","food","light","real","life","few","north","long","began","show","last","name",
+    "never","water","body","young","south","almost","away","important","while","face","right",
+    "school","next","another","change","form","keep","move","near","land","around","leave",
+    "different","state","still","early","off","national","live","such","through","much",
+    "before","start","level","story","since","air","turn","along","head","until","let","own",
+    "children","together","every","plant","point","government","feel","city","help","end","put",
+    "play","spell","add","follow","act","why","ask","men","went","kind","need","house","picture",
+    "try","again","animal","mother","world","build","self","earth","father","both","study","talk",
+    "maybe","open","seem","write","read","find","same","move","face","east","west","door","floor",
+    "tree","river","mountain","ocean","town","road","street","bridge","field","window","table",
+    "chair","phone","paper","book","music","voice","sound","color","shape","power","bring","clean",
+    "draw","drink","drive","fall","grow","hold","jump","pull","push","reach","ride","rise","run",
+    "send","sing","sleep","stand","swim","teach","throw","walk","watch","break","build","catch",
+    "choose","come","cut","eat","feel","fight","fly","forget","get","give","hear","keep","know"
+  ];
+
+  let words=[], wordIdx=0, charIdx=0;
+  let timer=null, timeLeft=30, totalDur=30;
+  let started=false, finished=false;
+  let totalTyped=0, totalMistakes=0;
+  let mistakeLog={};
+  let currentWordTyped='';
+
+  function pick(n){
+    const arr=[];
+    for(let i=0;i<n;i++) arr.push(WORDS[Math.floor(Math.random()*WORDS.length)]);
+    return arr;
+  }
+
+  function renderWords(){
+    const el=document.getElementById('words');
+    el.innerHTML='';
+    words.forEach((w,wi)=>{
+      const wd=document.createElement('span');
+      wd.className='word'+(wi===0?' current':'');
+      wd.id='w'+wi;
+      w.split('').forEach((c,ci)=>{
+        const ch=document.createElement('span');
+        ch.className='char'+(wi===0&&ci===0?' current':'');
+        ch.textContent=c;
+        ch.id=`c${wi}_${ci}`;
+        wd.appendChild(ch);
+      });
+      el.appendChild(wd);
+      if(wi<words.length-1) el.appendChild(document.createTextNode(' '));
+    });
+  }
+
+  function setDur(btn,d){
+    document.querySelectorAll('.dur-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    totalDur=d; timeLeft=d;
+    reset();
+  }
+
+  function focusInput(){ document.getElementById('hidden-input').focus(); }
+
+  function reset(newWords=false){
+    clearInterval(timer);
+    started=false; finished=false;
+    wordIdx=0; charIdx=0;
+    totalTyped=0; totalMistakes=0;
+    mistakeLog={}; currentWordTyped='';
+    timeLeft=totalDur;
+    if(newWords||words.length===0) words=pick(100);
+    renderWords();
+    document.getElementById('result-screen').classList.remove('show');
+    document.getElementById('wpm').innerHTML      ='0<span class="stat-unit">wpm</span>';
+    document.getElementById('cpm').innerHTML      ='0<span class="stat-unit">cpm</span>';
+    document.getElementById('accuracy').innerHTML ='100<span class="stat-unit">%</span>';
+    document.getElementById('mistakes').textContent='0';
+    document.getElementById('timelabel').textContent=totalDur+'s';
+    document.getElementById('bar').style.width='100%';
+    document.getElementById('bar').classList.remove('urgent');
+    document.getElementById('hidden-input').value='';
+    focusInput();
+  }
+
+  function startTimer(){
+    timer=setInterval(()=>{
+      timeLeft--;
+      const pct=Math.round((timeLeft/totalDur)*100);
+      const bar=document.getElementById('bar');
+      bar.style.width=pct+'%';
+      if(pct<=25) bar.classList.add('urgent'); else bar.classList.remove('urgent');
+      document.getElementById('timelabel').textContent=timeLeft+'s';
+      updateStats();
+      if(timeLeft<=0){ clearInterval(timer); showResult(); }
+    },1000);
+  }
+
+  function updateStats(){
+    const elapsed=(totalDur-timeLeft)||1;
+    const wpm=Math.round(wordIdx/(elapsed/60));
+    const cpm=Math.round(totalTyped/(elapsed/60));
+    const acc=totalTyped>0?Math.max(0,Math.round(((totalTyped-totalMistakes)/totalTyped)*100)):100;
+    document.getElementById('wpm').innerHTML      =wpm+'<span class="stat-unit">wpm</span>';
+    document.getElementById('cpm').innerHTML      =cpm+'<span class="stat-unit">cpm</span>';
+    document.getElementById('accuracy').innerHTML =acc+'<span class="stat-unit">%</span>';
+    document.getElementById('mistakes').textContent=totalMistakes;
+  }
+
+  function showResult(){
+    finished=true;
+    const elapsed=totalDur;
+    const wpm=Math.round(wordIdx/(elapsed/60));
+    const cpm=Math.round(totalTyped/(elapsed/60));
+    const acc=totalTyped>0?Math.max(0,Math.round(((totalTyped-totalMistakes)/totalTyped)*100)):100;
+
+    document.getElementById('res-wpm').textContent=wpm;
+    document.getElementById('res-cpm').textContent=cpm;
+    document.getElementById('res-acc').textContent=acc+'%';
+    document.getElementById('res-mis').textContent=totalMistakes;
+    document.getElementById('res-acc-bar').style.width=acc+'%';
+    document.getElementById('res-acc-bar-label').textContent=acc+'%';
+
+    const entries=Object.entries(mistakeLog).sort((a,b)=>b[1].count-a[1].count).slice(0,8);
+    const mc=document.getElementById('ma-content');
+    if(entries.length){
+      mc.innerHTML='<div class="ma-grid">'+entries.map(([,v])=>
+        `<div class="ma-item">
+          <span class="ma-exp">${v.expected}</span>
+          <span class="ma-arr">→</span>
+          <span class="ma-got">${v.typed}</span>
+          <span class="ma-cnt">×${v.count}</span>
+          <span class="ma-tag ${v.count>2?'tag-frequent':'tag-minor'}">${v.count>2?'frequent':'minor'}</span>
+        </div>`).join('')+'</div>';
+    } else {
+      mc.innerHTML='<div class="perfect-msg"><i class="ti ti-trophy" style="font-size:16px"></i> Perfect run — zero mistakes!</div>';
+    }
+
+    setTimeout(()=>{ document.getElementById('result-screen').classList.add('show'); }, 150);
+  }
+
+  function handleChar(key){
+    if(finished) return;
+    const word=words[wordIdx];
+    if(!started){ started=true; startTimer(); }
+
+    if(key===' '){
+      if(currentWordTyped.length===0) return;
+      const wordEl=document.getElementById('w'+wordIdx);
+      wordEl.classList.remove('current');
+      if(currentWordTyped===word) wordEl.classList.add('correct');
+      else wordEl.classList.add('wrong');
+      currentWordTyped=''; wordIdx++; charIdx=0;
+      if(wordIdx>=words.length){ showResult(); return; }
+      const nextEl=document.getElementById('w'+wordIdx);
+      nextEl.classList.add('current');
+      const fc=nextEl.querySelector('.char');
+      if(fc) fc.classList.add('current');
+      scrollToWord(wordIdx);
+      updateStats();
+      return;
+    }
+
+    if(key==='Backspace'){
+      if(charIdx>0){
+        charIdx--; currentWordTyped=currentWordTyped.slice(0,-1);
+        const prev=document.getElementById(`c${wordIdx}_${charIdx}`);
+        const cur=document.getElementById(`c${wordIdx}_${charIdx+1}`);
+        if(cur) cur.classList.remove('current');
+        if(prev){ prev.classList.add('current'); prev.classList.remove('correct','wrong'); }
+      }
+      return;
+    }
+
+    if(key.length!==1) return;
+    totalTyped++;
+
+    const expected=word[charIdx];
+    const charEl=document.getElementById(`c${wordIdx}_${charIdx}`);
+    if(!charEl) return;
+    charEl.classList.remove('current');
+
+    if(key===expected){ charEl.classList.add('correct'); }
+    else {
+      charEl.classList.add('wrong');
+      totalMistakes++;
+      const mk=`${expected}>${key}`;
+      if(!mistakeLog[mk]) mistakeLog[mk]={expected,typed:key,count:0};
+      mistakeLog[mk].count++;
+    }
+
+    currentWordTyped+=key; charIdx++;
+    const next=document.getElementById(`c${wordIdx}_${charIdx}`);
+    if(next) next.classList.add('current');
+    updateStats();
+  }
+
+  function scrollToWord(wi){
+    const el=document.getElementById('w'+wi);
+    if(el) el.scrollIntoView({block:'nearest',behavior:'smooth'});
+  }
+
+  const inp=document.getElementById('hidden-input');
+
+  inp.addEventListener('keydown',e=>{
+    if(e.key==='Escape')    { reset(); return; }
+    if(e.key==='Backspace') { e.preventDefault(); handleChar('Backspace'); return; }
+    if(e.key===' ')         { e.preventDefault(); handleChar(' '); return; }
+  });
+
+  inp.addEventListener('input',e=>{
+    const v=inp.value;
+    if(v.length>0){ const ch=v[v.length-1]; inp.value=''; if(ch!==' ') handleChar(ch); }
+  });
+
+  document.addEventListener('keydown',e=>{ if(e.target!==inp) focusInput(); });
+
+  reset(true);
+</script>
+</body>
+</html>
